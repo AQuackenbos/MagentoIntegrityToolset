@@ -1,0 +1,4 @@
+MagentoIntegrityScan
+====================
+
+Magento Integrity Scanner
