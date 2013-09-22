@@ -3,9 +3,9 @@ Magento Integrity Scanner
 
 Usage:  php -f integrity.php -- [options]
 
-  --compare <dir>	            Compare these files to a separate magento directory, dir 
-  --local <name>				List local classes for a given namespace, name.  Overrides the local Mage, Enterprise, and Zend checks.
-  --output <file>				Save results of this scan to a file, based in the Magento root directory.  Root must be writeable.
+  --compare [dir]  Compare these files to a separate magento directory, dir 
+  --local [name]				List local classes for a given namespace, name.  Overrides the local Mage, Enterprise, and Zend checks.
+  --output [file]				Save results of this scan to a file, based in the Magento root directory.  Root must be writeable.
   silent						Hides the echo of the result for this scan.
   help                          See this usage information.
   
