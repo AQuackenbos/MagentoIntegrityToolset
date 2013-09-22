@@ -1,7 +1,9 @@
 Magento Integrity Scanner
 ====================
 
-Use "php -f integrity.php -- help" to see a full list of options.
+Place repository in root directory of any Magento installation, or just
+copy integrity.php into the /shell directory.  Use "php -f integrity.php -- help" 
+to see a full list of options.
   
 The Magento Integrity Scanner is a tool to help find overwrites, rewrites, and other
 changes to a Magento installation that may cause issues.  It is a tool to help debug
