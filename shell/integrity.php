@@ -14,11 +14,10 @@ class Mage_Shell_Integrity extends Mage_Shell_Abstract
         return <<<USAGE
 Usage:  php -f integrity.php -- [options]
 
-  --compare <dir>	            Compare these files to a separate magento directory, dir 
-  --local <name>				List local classes for a given namespace, name.  Overrides the local Mage, Enterprise, and Zend checks.
+  --local <name>				List local classes for a given namespace, name.  This is in addition to the default checks for Mage, Enterprise, Varien and Zend.
   --output <file>				Save results of this scan to a file, based in the Magento root directory.  Root must be writeable.
   silent						Hides the echo of the result for this scan.
-  help                          This help
+  help                          Displays this usage text.
 
 USAGE;
     }
@@ -29,12 +28,20 @@ USAGE;
 		$customDirectory = $this->getArg('local');
 		$output = '';
 		
-		$output .= 'Magento Integrity Scanner 0.1'."\n";
+		$output .= 'Magento Overrides Scanner'."\n";
 		$output .= '============================='."\n\n";
 		
 		//List installed extensions and flag disabled ones
-		$output .= 'Extensions installed: '."\n";
-		$output .= "\t".'(Coming Soon)'."\n";
+		$output .= 'Extensions Installed: '."\n";
+		$extensionsInstalled = $this->_getExtensionList();
+		if(empty(trim($extensionsInstalled)))
+		{
+			$output .= "\t".'(None)'."\n";
+		}
+		else
+		{
+			$output .= $extensionsInstalled;
+		}
 		
 		//List rewritten classes
 		$output .= 'Rewritten classes: '."\n";
@@ -43,26 +50,44 @@ USAGE;
 		//Models
 		$models = Mage::getConfig()->getNode('global/models');
 		$output .= "\t".'Models:'."\n";
-		$output .= $this->_showRewrites($models);
+		$modelRewrites = $this->_showRewrites($models);
+		if(empty(trim($modelRewrites)))
+		{
+			$output .= "\t\t".'(None)'."\n";
+		}
+		else
+		{
+			$output .= $modelRewrites;
+		}
 		
 		//Blocks
 		$blocks = Mage::getConfig()->getNode('global/blocks');
 		$output .= "\t".'Blocks:'."\n";
-		$output .= $this->_showRewrites($blocks);
+		$blockRewrites = $this->_showRewrites($blocks);
+		if(empty(trim($blockRewrites)))
+		{
+			$output .= "\t\t".'(None)'."\n";
+		}
+		else
+		{
+			$output .= $blockRewrites;
+		}
 		
 		
 		//Controllers
-		$output .= "\t".'Controllers:'."\n";
-		$output .= "\t\t".'(Coming Soon)'."\n";
+		//$output .= "\t".'Controllers:'."\n";
+		//$output .= "\t\t".'(Coming Soon)'."\n";
 		
 		//List local Enterprise and Mage files
 		$output .= 'Local classes: '."\n";
-		$output .= $this->_readLocalFiles($customDirectory);
-		
-		if($this->getArg('compare'))
+		$localFiles = $this->_readLocalFiles($customDirectory);
+		if(empty(trim($localFiles)))
 		{
-			$output .= 'Comparing install to clean copy at "'.$this->getArg('compare')."\"\n";
-			$output .= "\t".'(Coming Soon)'."\n";
+			$output .= "\t".'(None)'."\n";
+		}
+		else
+		{
+			$output .= $localFiles;
 		}
 		
 		if($this->getArg('output'))
@@ -78,19 +103,56 @@ USAGE;
 		
 	}
 	
-	protected function _readLocalFiles($dirs = null)
+	protected function _getExtensionList()
+	{
+		$modules = Mage::getConfig()->getNode('modules');
+		$coreModules = array();
+		$output = '';
+	
+		foreach($modules as $wrapper => $moduledata)
+		{
+			foreach($moduledata as $_moduleName => $data)
+			{
+				if($data->codePool == 'core')
+				{
+					continue;
+				}
+				
+				$ts = ceil((32-strlen($_moduleName))/8);
+				$output .= "\t".$_moduleName;
+				while($ts-- > 0)
+				{ 
+					$output .= "\t"; 
+				}
+				$version = $data->version;
+				if($data->active == 'false')
+				{
+					$version = 'disabled';
+				}
+				$output .= $version.'/'.$data->codePool."\n";
+			}
+		}
+		
+		return $output;
+	}
+	
+	protected function _readLocalFiles($additional = null)
 	{
 		$result = '';
 		$localPath = $this->_getRootPath() . 'app' . DIRECTORY_SEPARATOR . 'code' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR;
 		
-		if($dirs == null)
+		$dirs = array(
+			'Mage',
+			'Enterprise',
+			'Varien',
+			'Zend',
+		);
+		
+		if($additional)
 		{
-			$dirs = array(
-				'Mage',
-				'Enterprise',
-				'Zend'
-			);
+			$dirs[] = $additional;
 		}
+		
 		else
 		{
 			$dirs = array($dirs);
