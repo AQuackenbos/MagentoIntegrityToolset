@@ -34,7 +34,7 @@ USAGE;
 		//List installed extensions and flag disabled ones
 		$output .= 'Extensions Installed: '."\n";
 		$extensionsInstalled = $this->_getExtensionList();
-		if(empty(trim($extensionsInstalled)))
+		if(empty($extensionsInstalled))
 		{
 			$output .= "\t".'(None)'."\n";
 		}
@@ -51,7 +51,7 @@ USAGE;
 		$models = Mage::getConfig()->getNode('global/models');
 		$output .= "\t".'Models:'."\n";
 		$modelRewrites = $this->_showRewrites($models);
-		if(empty(trim($modelRewrites)))
+		if(empty($modelRewrites))
 		{
 			$output .= "\t\t".'(None)'."\n";
 		}
@@ -64,7 +64,7 @@ USAGE;
 		$blocks = Mage::getConfig()->getNode('global/blocks');
 		$output .= "\t".'Blocks:'."\n";
 		$blockRewrites = $this->_showRewrites($blocks);
-		if(empty(trim($blockRewrites)))
+		if(empty($blockRewrites))
 		{
 			$output .= "\t\t".'(None)'."\n";
 		}
@@ -81,7 +81,7 @@ USAGE;
 		//List local Enterprise and Mage files
 		$output .= 'Local classes: '."\n";
 		$localFiles = $this->_readLocalFiles($customDirectory);
-		if(empty(trim($localFiles)))
+		if(empty($localFiles))
 		{
 			$output .= "\t".'(None)'."\n";
 		}

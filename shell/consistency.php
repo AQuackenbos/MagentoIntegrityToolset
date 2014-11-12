@@ -2,6 +2,7 @@
 
 //DEFAULTS
 $_defaults = array(
+	'v'		=> false,
 	'clean'	=> '..'. DIRECTORY_SEPARATOR .'..',
 	'dirty'	=> '..',
 	'comp'	=> '_COMPARE',
@@ -94,7 +95,7 @@ require_once $dirtyDir . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'Ma
 
 $detectedVersion = convertEdition(Mage::getEdition()).Mage::getVersion();
 $version = $detectedVersion;
-if($use['v'])
+if($use['v'] !== false)
 {
 	$version = $use['v'];
 }
