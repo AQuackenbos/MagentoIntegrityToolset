@@ -16,6 +16,7 @@ Usage:  php -f integrity.php -- [options]
 
   --local <name>				List local classes for a given namespace, name.  This is in addition to the default checks for Mage, Enterprise, Varien and Zend.
   --output <file>				Save results of this scan to a file, based in the Magento root directory.  Root must be writeable.
+  diff							Create diffs of local files found in _DIFFS
   silent						Hides the echo of the result for this scan.
   help                          Displays this usage text.
 
@@ -80,7 +81,8 @@ USAGE;
 		
 		//List local Enterprise and Mage files
 		$output .= 'Local classes: '."\n";
-		$localFiles = $this->_readLocalFiles($customDirectory);
+		$diff = $this->getArg('diff');
+		$localFiles = $this->_readLocalFiles($customDirectory, $diff);
 		if(empty($localFiles))
 		{
 			$output .= "\t".'(None)'."\n";
@@ -88,6 +90,10 @@ USAGE;
 		else
 		{
 			$output .= $localFiles;
+			if($diff)
+			{
+				$output .= "Diffs created\n";
+			}
 		}
 		
 		if($this->getArg('output'))
@@ -119,6 +125,7 @@ USAGE;
 				}
 				
 				$ts = ceil((32-strlen($_moduleName))/8);
+				$ts = max(1,$ts);
 				$output .= "\t".$_moduleName;
 				while($ts-- > 0)
 				{ 
@@ -136,7 +143,7 @@ USAGE;
 		return $output;
 	}
 	
-	protected function _readLocalFiles($additional = null)
+	protected function _readLocalFiles($additional = null, $diff = false)
 	{
 		$result = '';
 		$localPath = $this->_getRootPath() . 'app' . DIRECTORY_SEPARATOR . 'code' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR;
@@ -153,14 +160,9 @@ USAGE;
 			$dirs[] = $additional;
 		}
 		
-		else
-		{
-			$dirs = array($dirs);
-		}
-		
 		foreach($dirs as $_directory)
 		{	
-			$result .= implode("\n",$this->_processDirectory($localPath.$_directory))."\n";
+			$result .= implode("\n",$this->_processDirectory($localPath.$_directory, $diff))."\n";
 		}
 		
 		if(!$result)
@@ -171,22 +173,33 @@ USAGE;
 		return $result;
 	}
 	
-	protected function _processDirectory($dir) {
+	protected function _processDirectory($dir, $diff = false) {
 		$localPath = $this->_getRootPath() . 'app' . DIRECTORY_SEPARATOR . 'code' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR;
+		$corePath = $this->_getRootPath() . 'app' . DIRECTORY_SEPARATOR . 'code' . DIRECTORY_SEPARATOR . 'core' . DIRECTORY_SEPARATOR;
 		
 		if (is_dir($dir)) {
 			for ($list = array(),$handle = opendir($dir); (FALSE !== ($file = readdir($handle)));) {
 				if (($file != '.' && $file != '..') && (file_exists($path = $dir.'/'.$file))) {
 					if (is_dir($path)) {
-						$list = array_merge($list, $this->_processDirectory($path, TRUE));
+						$list = array_merge($list, $this->_processDirectory($path,$diff));
 					} else {
 						do if (!is_dir($path)) {
 							//File
 							$entry = "\t";
+							$filePath = str_replace($localPath,'',$path);
 							$fixedPath = str_replace(array($localPath,'.php'),'',$path);
 							$fixedPath = str_replace(array('/','\\'),'_',$fixedPath);
 							$entry .= $fixedPath;
 
+							if($diff)
+							{
+								$writeString = '< Clean File'."\n".'> Dirty File'."\n".'============================='."\n";
+								$writeString .= shell_exec('diff -bBE '.$corePath.$filePath.' '.$localPath.$filePath.' --strip-trailing-cr');
+								
+								$writeFile = '_DIFFS'.DS.str_replace('/','_',trim($fixedPath)).'.diff';
+								
+								file_put_contents($writeFile,$writeString);
+							}
 							break;
 						} else {
 							//Directory

@@ -160,7 +160,8 @@ foreach($list as $_diff)
 		if(stripos($file,'.jpg') !== false ||
 			stripos($file,'.jpeg') !== false ||
 			stripos($file,'.gif') !== false ||
-			stripos($file,'.png') !== false)
+			stripos($file,'.png') !== false ||
+			stripos($file,'.ico') !== false)
 		{
 			$modImages[] = $file;
 			continue;
